@@ -1,9 +1,9 @@
 name: Deployment (Container)
-on:
-  push:
-    branches:
-      - main
-      - dev
+on: workflow_dispatch
+  # push:
+  #   branches:
+  #     - main
+  #     - dev
 env:
   CACHE_KEY: node-deps
   MONGODB_DB_NAME: gha-demo
@@ -12,13 +12,14 @@ jobs:
     environment: testing
     runs-on: ubuntu-latest
     # this "container" will be used to run the commands below instead on directly on the VM runner
-    # it will create its own container network that all other services will use 
+    # it will create its own local container network that all other services will use 
     container: node:16 
     env:
       # MONGODB_CONNECTION_PROTOCOL: mongodb+srv
       # when using mongo image, change this as specified by MongoDB Atlas documentation
       MONGODB_CONNECTION_PROTOCOL: mongodb 
       # MONGODB_CLUSTER_ADDRESS: cluster0.wxa4g.mongodb.net
+      # MONGODB_CLUSTER_ADDRESS: 127.0.0.1:27017 - used when project runs in the VM runner
       # this is the name of the service inside "services" below. Will only work if project runs in a container
       MONGODB_CLUSTER_ADDRESS: mongodb 
       # MONGODB_USERNAME: ${{ secrets.MONGODB_USERNAME }}
@@ -26,9 +27,14 @@ jobs:
       MONGODB_USERNAME: containerusername
       MONGODB_PASSWORD: containerpassword
       PORT: 8080
-    services: # services always run inside of images
-      mongodb: # MongoDB service used to create a test database to run tests on and discard after it's done
+    # services always run inside of images
+    services: 
+      # MongoDB service used to create a test database to run tests on and discard after it's done
+      mongodb: 
         image: mongo
+        # ports to image are only used when project runs on the VM runner as opposed to running in a node:16 container 
+        # ports:
+        #   - 27017:27017
         env:
           MONGO_INITDB_ROOT_USERNAME: containerusername
           MONGO_INITDB_ROOT_PASSWORD: containerpassword
