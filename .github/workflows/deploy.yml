@@ -11,13 +11,27 @@ jobs:
   test:
     environment: testing
     runs-on: ubuntu-latest
-    container: node:16
+    # this "container" will be used to run the commands below instead on directly on the VM runner
+    # it will create its own container network that all other services will use 
+    container: node:16 
     env:
-      MONGODB_CONNECTION_PROTOCOL: mongodb+srv
-      MONGODB_CLUSTER_ADDRESS: cluster0.wxa4g.mongodb.net
-      MONGODB_USERNAME: ${{ secrets.MONGODB_USERNAME }}
-      MONGODB_PASSWORD: ${{ secrets.MONGODB_PASSWORD }}
+      # MONGODB_CONNECTION_PROTOCOL: mongodb+srv
+      # when using mongo image, change this as specified by MongoDB Atlas documentation
+      MONGODB_CONNECTION_PROTOCOL: mongodb 
+      # MONGODB_CLUSTER_ADDRESS: cluster0.wxa4g.mongodb.net
+      # this is the name of the service inside "services" below. Will only work if project runs in a container
+      MONGODB_CLUSTER_ADDRESS: mongodb 
+      # MONGODB_USERNAME: ${{ secrets.MONGODB_USERNAME }}
+      # MONGODB_PASSWORD: ${{ secrets.MONGODB_PASSWORD }}
+      MONGODB_USERNAME: containerusername
+      MONGODB_PASSWORD: containerpassword
       PORT: 8080
+    services: # services always run inside of images
+      mongodb: # MongoDB service used to create a test database to run tests on and discard after it's done
+        image: mongo
+        env:
+          MONGO_INITDB_ROOT_USERNAME: containerusername
+          MONGO_INITDB_ROOT_PASSWORD: containerpassword
     steps:
       - name: Get Code
         uses: actions/checkout@v3
